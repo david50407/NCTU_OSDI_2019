@@ -1,5 +1,5 @@
 # indicate the Hardware Image file
-HDA_IMG = ../osdi_lab1.img
+HDA_IMG = ../osdi.img
 
 # indicate the path of the calltree
 CALLTREE=$(shell find tools/ -name "calltree" -perm 755 -type f)
