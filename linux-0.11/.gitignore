@@ -11,7 +11,3 @@ kernel/chr_drv/keyboard.s
 
 # Tools
 tools/system
-
-# System image
-Image
-System.map
