@@ -133,13 +133,13 @@ cscope:
 	@cscope -Rbkq
 
 start:
-	@qemu -m 16M -boot a -fda Image -hda $(HDA_IMG)
+	@$(QEMU) -m 16M -boot a -fda Image -hda $(HDA_IMG)
 
 bochs-start:
 	@$(BOCHS) -q -f tools/bochs/bochsrc/bochsrc-hd.bxrc	
 
 debug:
-	@qemu -m 16M -boot a -fda Image -hda $(HDA_IMG) -s -S
+	@$(QEMU) -m 16M -boot a -fda Image -hda $(HDA_IMG) -s -S
 
 bochs-debug:
 	@$(BOCHS) -q -f tools/bochs/bochsrc/bochsrc-hd-dbg.bxrc	
