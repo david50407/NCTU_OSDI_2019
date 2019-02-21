@@ -1,7 +1,11 @@
 #ifndef _SCHED_H
 #define _SCHED_H
 
+#if 0
+/* We need a task pool, don't be silly */
 #define NR_TASKS 0
+#endif
+#define NR_TASKS 64
 #define HZ 100
 
 #define FIRST_TASK task[0]
