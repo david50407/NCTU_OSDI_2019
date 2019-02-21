@@ -191,6 +191,8 @@ void init(void)
 	if (pid>0)
 		while (pid != wait(&i))
 			/* nothing */;
+	/* Hello, my dear friend :) */
+	printf("Hello 0756125\r\n");
 	while (1) {
 		if ((pid=fork())<0) {
 			printf("Fork failed in init\r\n");
