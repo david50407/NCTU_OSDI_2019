@@ -63,13 +63,51 @@ go:	mov	%cs, %ax
 	mov	%ax, %ss
 	mov	$0xFF00, %sp		# arbitrary value >>512
 
+init_boot_menu:
+	mov $0x03, %ah      # read cursor pos
+	xor %bh, %bh
+	int $0x10
+boot_menu:
+	mov $0x0007, %bx
+	mov $boot_menu_prompt, %bp
+	mov $0x40, %cx # string length
+	mov $0x1301, %ax # write string
+	int $0x10
+	push %dx            # prepare to move back one char
+	mov $0x03, %ah      # read cursor pos
+	int $0x10
+	sub $1, %dl         # move back one char
+	mov $0x02, %ah
+	int $0x10
+	pop %dx
+	mov $0, %ah
+	int $0x16 # read keystroke
+	mov $0x09, %ah # write char
+	mov $1, %cx
+	int $0x10
+	cmp $0x31, %al # key ascii = '1'
+	je load_setup
+	cmp $0x32, %al # key ascii = '2'
+	je load_hello
+	jmp boot_menu
+
+boot_menu_prompt:
+	.byte 13,10
+	.ascii "Boot menu"
+	.byte 13,10
+	.ascii "  [1] Linux 0.11"
+	.byte 13,10
+	.ascii "  [2] Hello sub-system"
+	.byte 13,10
+	.ascii "Select:  "
+
 # load the hello sub-system
 load_hello:
 	mov	$0x0000, %dx		# drive 0, head 0
 	mov	$0x0002, %cx		# sector 2, track 0
 	mov $0x0100, %ax
 	mov %ax, %es    # move to 0x1000
-	mov	$0x0000, %bx		# address = 512, in INITSEG
+	mov	$0x0000, %bx		# address = 0, in INITSEG
 	.equ    AX, 0x0200+HELLOLEN
 	mov     $AX, %ax		# service 2, nr of sectors
 	int $0x13
@@ -81,7 +119,7 @@ load_hello:
 
 load_setup:
 	mov	$0x0000, %dx		# drive 0, head 0
-	mov	$0x0002, %cx		# sector 2, track 0
+	mov	$0x0003, %cx		# sector 3, track 0
 	mov	$0x0200, %bx		# address = 512, in INITSEG
 	.equ    AX, 0x0200+SETUPLEN
 	mov     $AX, %ax		# service 2, nr of sectors
@@ -161,7 +199,7 @@ root_defined:
 #
 # in:	es - starting address segment (normally 0x1000)
 #
-sread:	.word 1+ SETUPLEN	# sectors read of current track
+sread:	.word 1+ HELLOLEN+ SETUPLEN	# sectors read of current track
 head:	.word 0			# current head
 track:	.word 0			# current track
 
