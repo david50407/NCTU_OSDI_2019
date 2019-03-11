@@ -4,6 +4,7 @@
 # Boot
 boot/bootsect
 boot/setup
+boot/hello
 
 # Kernel
 kernel/a.out

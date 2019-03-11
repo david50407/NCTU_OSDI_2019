@@ -34,6 +34,7 @@
 	.text
 
 	.equ SETUPLEN, 4		# nr of setup-sectors
+	.equ HELLOLEN, 1		# nr of hello-sectors
 	.equ BOOTSEG, 0x07c0		# original address of boot-sector
 	.equ INITSEG, 0x9000		# we move boot here - out of the way
 	.equ SETUPSEG, 0x9020		# setup starts here
@@ -61,6 +62,19 @@ go:	mov	%cs, %ax
 # put stack at 0x9ff00.
 	mov	%ax, %ss
 	mov	$0xFF00, %sp		# arbitrary value >>512
+
+# load the hello sub-system
+load_hello:
+	mov	$0x0000, %dx		# drive 0, head 0
+	mov	$0x0002, %cx		# sector 2, track 0
+	mov $0x0100, %ax
+	mov %ax, %es    # move to 0x1000
+	mov	$0x0000, %bx		# address = 512, in INITSEG
+	.equ    AX, 0x0200+HELLOLEN
+	mov     $AX, %ax		# service 2, nr of sectors
+	int $0x13
+	.equ sel_cs0, 0x0100
+	ljmp $sel_cs0, $0 # Jump to hello
 
 # load the setup-sectors directly after the bootblock.
 # Note that 'es' is already set up.
