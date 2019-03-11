@@ -13,7 +13,8 @@ CFLAGS  = -g -m32 -fno-builtin -fno-stack-protector -fomit-frame-pointer -fstren
 CPP	= cpp-4.8 -nostdinc
 AR	= ar
 
-QEMU	= qemu-system-i386 -nographic -curses
+QEMU	= qemu-system-i386
+# QEMU	= qemu-system-i386 -nographic -curses
 
 # we should use -fno-stack-protector with gcc 4.3
 gcc_version=$(shell ls -l `which $(CC)` | tr '-' '\n' | tail -1)

@@ -1,5 +1,7 @@
 # indicate the Hardware Image file
 HDA_IMG = ../osdi.img
+BIOS_IMG = ../../seabios/out/bios.bin
+BOOTSPLASH_IMG = ../bootsplash.jpg
 
 # indicate the path of the calltree
 CALLTREE=$(shell find tools/ -name "calltree" -perm 755 -type f)
@@ -133,7 +135,7 @@ cscope:
 	@cscope -Rbkq
 
 start:
-	@$(QEMU) -m 16M -boot a -fda Image -hda $(HDA_IMG)
+	@$(QEMU) -m 16M -boot a,splash=$(BOOTSPLASH_IMG),menu=on -fda Image -hda $(HDA_IMG) -bios $(BIOS_IMG)
 
 bochs-start:
 	@$(BOCHS) -q -f tools/bochs/bochsrc/bochsrc-hd.bxrc	
