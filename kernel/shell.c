@@ -13,6 +13,7 @@ struct Command {
 static struct Command commands[] = {
 	{ "help", "Display this list of commands", mon_help },
 	{ "kerninfo", "Display information about the kernel", mon_kerninfo },
+	{ "chgcolor", "Change output text color", mon_chgcolor },
 	{ "print_tick", "Display system tick", print_tick }
 };
 #define NCOMMANDS (sizeof(commands)/sizeof(commands[0]))
@@ -36,6 +37,23 @@ int mon_kerninfo(int argc, char **argv)
 
 	return 0;
 }
+
+int mon_chgcolor(int argc, char **argv)
+{
+	unsigned char fg = 0, bg = 0;
+
+	if (argc == 1) {
+		cprintf("No input text color!\n");
+		return 1;
+	}
+
+	fg = *argv[1] - '0';
+	settextcolor(fg, bg);
+	cprintf("Change color %d!\n", fg);
+
+	return 0;
+}
+
 int print_tick(int argc, char **argv)
 {
 	cprintf("Now tick = %d\n", get_tick());
