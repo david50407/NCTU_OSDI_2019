@@ -124,6 +124,16 @@ trap_dispatch(struct Trapframe *tf)
    */
 
 	// Unexpected trap: The user process or the kernel has a bug.
+	if (tf->tf_trapno >= IRQ_OFFSET) {
+		switch (tf->tf_trapno - IRQ_OFFSET) {
+			case IRQ_KBD:
+				kbd_intr();
+				return;
+			case IRQ_TIMER:
+				timer_handler();
+				return;
+		}
+	}
 	print_trapframe(tf);
 }
 
@@ -166,7 +176,11 @@ void trap_init()
    */
 
 	/* Keyboard interrupt setup */
+	extern kbd_isr();
+	SETGATE(idt[IRQ_OFFSET + IRQ_KBD], false, GD_KT, kbd_isr, 0);
 	/* Timer Trap setup */
+	extern timer_isr();
+	SETGATE(idt[IRQ_OFFSET + IRQ_TIMER], false, GD_KT, timer_isr, 0);
   /* Load IDT */
 	lidt(&t);
 }
