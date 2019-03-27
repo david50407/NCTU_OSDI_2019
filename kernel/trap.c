@@ -16,6 +16,11 @@ static struct Trapframe *last_tf;
  *       function addresses can't be represented in relocation records.
  */
 
+struct Gatedesc idt[256];
+struct Pseudodesc t = {
+	.pd_lim = sizeof(idt),
+	.pd_base = idt
+};
 
 /* For debugging */
 static const char *trapname(int trapno)
@@ -163,5 +168,5 @@ void trap_init()
 	/* Keyboard interrupt setup */
 	/* Timer Trap setup */
   /* Load IDT */
-
+	lidt(&t);
 }
