@@ -27,14 +27,13 @@ int mon_help(int argc, char **argv)
 	return 0;
 }
 
+extern char __TEXT_BEGIN__, __TEXT_END__, __DATA_BEGIN__, __DATA_END__;
+
 int mon_kerninfo(int argc, char **argv)
 {
-	/* TODO: Print the kernel code and data section size 
-   * NOTE: You can count only linker script (kernel/kern.ld) to
-   *       provide you with those information.
-   *       Use PROVIDE inside linker script and calculate the
-   *       offset.
-   */
+	cprintf("Kernel Code Base: %p Size: %6d bytes.\n", &__TEXT_BEGIN__, &__TEXT_END__ - &__TEXT_BEGIN__);
+	cprintf("       Data Base: %p Size: %6d bytes.\n", &__DATA_BEGIN__, &__DATA_END__ - &__DATA_BEGIN__);
+
 	return 0;
 }
 int print_tick(int argc, char **argv)
