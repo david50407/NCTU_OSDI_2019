@@ -1,0 +1,9 @@
+*.o
+
+/boot/boot
+/boot/boot.asm
+/boot/boot.out
+/kernel/system
+/kernel/system.asm
+/kernel/system.sym
+/kernel.img
