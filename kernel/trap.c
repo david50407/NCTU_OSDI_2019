@@ -124,6 +124,11 @@ trap_dispatch(struct Trapframe *tf)
    */
 
 	// Unexpected trap: The user process or the kernel has a bug.
+	switch (tf->tf_trapno) {
+		case T_PGFLT:
+			page_fault_handler(tf);
+			return;
+	}
 	if (tf->tf_trapno >= IRQ_OFFSET) {
 		switch (tf->tf_trapno - IRQ_OFFSET) {
 			case IRQ_KBD:
@@ -181,6 +186,15 @@ void trap_init()
 	/* Timer Trap setup */
 	extern timer_isr();
 	SETGATE(idt[IRQ_OFFSET + IRQ_TIMER], false, GD_KT, timer_isr, 0);
+	/* Trap page fault setup */
+	extern page_fault_isr();
+	SETGATE(idt[T_PGFLT], true, GD_KT, page_fault_isr, 0);
   /* Load IDT */
 	lidt(&t);
+}
+
+void page_fault_handler(struct Trapframe *tf)
+{
+	cprintf("[0756125] Page fault @ 0x%08x", rcr2());
+	while (1);
 }
