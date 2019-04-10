@@ -16,9 +16,11 @@ CFLAGS += -I.
 
 OBJDIR = .
 
-.PHONY: all clean run
+.PHONY: all clean
 
-all: boot/boot kernel/system
+all: $(OBJDIR)/kernel.img
+
+$(OBJDIR)/kernel.img: boot/boot kernel/system
 	dd if=/dev/zero of=$(OBJDIR)/kernel.img count=10000 2>/dev/null
 	dd if=$(OBJDIR)/boot/boot of=$(OBJDIR)/kernel.img conv=notrunc 2>/dev/null
 	dd if=$(OBJDIR)/kernel/system of=$(OBJDIR)/kernel.img seek=1 conv=notrunc 2>/dev/null
@@ -31,5 +33,8 @@ clean:
 	rm $(OBJDIR)/kernel/*.o $(OBJDIR)/kernel/system* kernel.* || true
 	rm $(OBJDIR)/lib/*.o || true
 
-run:
-	qemu-system-i386 -hda kernel.img -nographic -curses
+run: 
+	qemu-system-i386 -hda $(OBJDIR)/kernel.img -nographic -curses
+
+debug:
+	qemu-system-i386 -hda $(OBJDIR)/kernel.img -nographic -curses -s -S
