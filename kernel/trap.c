@@ -18,7 +18,7 @@ static struct Trapframe *last_tf;
 
 struct Gatedesc idt[256];
 struct Pseudodesc t = {
-	.pd_lim = sizeof(idt),
+	.pd_lim = sizeof(idt) - 1,
 	.pd_base = idt
 };
 

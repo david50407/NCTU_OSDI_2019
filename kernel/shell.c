@@ -34,6 +34,7 @@ int mon_kerninfo(int argc, char **argv)
 {
 	cprintf("Kernel Code Base: %p Size: %6d bytes.\n", &__TEXT_BEGIN__, &__TEXT_END__ - &__TEXT_BEGIN__);
 	cprintf("       Data Base: %p Size: %6d bytes.\n", &__DATA_BEGIN__, &__DATA_END__ - &__DATA_BEGIN__);
+	cprintf("Memory footprint size: %6d bytes.\n", &__DATA_END__ - &__TEXT_BEGIN__);
 
 	return 0;
 }
