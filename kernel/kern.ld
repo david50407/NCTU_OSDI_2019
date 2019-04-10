@@ -4,11 +4,11 @@
 OUTPUT_FORMAT("elf32-i386", "elf32-i386", "elf32-i386")
 OUTPUT_ARCH(i386)
 ENTRY(_start)
-kernel_load_addr = 0x100000;
+kernel_load_addr = 0xF0100000;
 
 PHDRS
 {
-	LOAD PT_LOAD AT(kernel_load_addr) FLAGS(PF_X|PF_R);
+	LOAD PT_LOAD AT(0x100000) FLAGS(PF_X|PF_R);
 }
 
 SECTIONS
@@ -17,7 +17,7 @@ SECTIONS
 
 	/* AT(...) gives the load address of this section, which tells
 	   the boot loader where to load the kernel in physical memory */
-	.text : AT(kernel_load_addr) {
+	.text : AT(0x100000) {
 		PROVIDE(__TEXT_BEGIN__ = .);
 		*(.text .stub .text.* .gnu.linkonce.t.*)
 		PROVIDE(__TEXT_END__ = .);
