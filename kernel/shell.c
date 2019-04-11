@@ -14,7 +14,8 @@ static struct Command commands[] = {
 	{ "help", "Display this list of commands", mon_help },
 	{ "kerninfo", "Display information about the kernel", mon_kerninfo },
 	{ "chgcolor", "Change output text color", mon_chgcolor },
-	{ "print_tick", "Display system tick", print_tick }
+	{ "print_tick", "Display system tick", print_tick },
+	{ "page_fault", "Danger!! Page fault now!", page_fault }
 };
 #define NCOMMANDS (sizeof(commands)/sizeof(commands[0]))
 
@@ -58,6 +59,12 @@ int mon_chgcolor(int argc, char **argv)
 int print_tick(int argc, char **argv)
 {
 	cprintf("Now tick = %d\n", get_tick());
+}
+
+int page_fault(int argc, char **argv)
+{
+	int *ptr = (int *) 0x12345678;
+	*ptr = 1;
 }
 
 #define WHITESPACE "\t\r\n "

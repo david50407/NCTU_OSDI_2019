@@ -6,5 +6,6 @@ int mon_help(int argc, char **argv);
 int mon_kerninfo(int argc, char **argv);
 int mon_chgcolor(int argc, char **argv);
 int print_tick(int argc, char **argv);
+int page_fault(int argc, char **argv);
 
 #endif
