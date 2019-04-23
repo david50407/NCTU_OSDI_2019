@@ -176,21 +176,6 @@ trap_dispatch(struct Trapframe *tf)
 	}
 
 	// Unexpected trap: The user process or the kernel has a bug.
-	switch (tf->tf_trapno) {
-		case T_PGFLT:
-			page_fault_handler(tf);
-			return;
-	}
-	if (tf->tf_trapno >= IRQ_OFFSET) {
-		switch (tf->tf_trapno - IRQ_OFFSET) {
-			case IRQ_KBD:
-				KBD_Input();
-				return;
-			case IRQ_TIMER:
-				TIM_ISR();
-				return;
-		}
-	}
 	print_trapframe(tf);
 	panic("Unexpected trap!");
 	
@@ -230,11 +215,6 @@ void trap_init()
 	SETGATE(idt[T_GPFLT], 1, GD_KT, GPFLT, 0);
 	extern void STACK_ISR();
 	SETGATE(idt[T_STACK], 1, GD_KT, STACK_ISR, 0);
-
-	/* Keyboard interrupt setup */
-	SETGATE(idt[IRQ_OFFSET + IRQ_KBD], false, GD_KT, KBD_Input, 0);
-	/* Timer Trap setup */
-	SETGATE(idt[IRQ_OFFSET + IRQ_TIMER], false, GD_KT, TIM_ISR, 0);
 
   /* Using custom trap handler */
 	extern void PGFLT();
