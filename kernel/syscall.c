@@ -77,15 +77,11 @@ int32_t do_syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, ui
     break;
 
   case SYS_settextcolor:
-		/* TODO: Lab 5
-     * You can reference kernel/screen.c
-     */
+		sys_settextcolor((unsigned char) a1, (unsigned char) a2);
     break;
 
   case SYS_cls:
-		/* TODO: Lab 5
-     * You can reference kernel/screen.c
-     */
+		sys_cls();
     break;
 
 	}
