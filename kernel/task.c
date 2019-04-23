@@ -211,16 +211,44 @@ void sys_kill(int pid)
 int sys_fork()
 {
   /* pid for newly created process */
-  int pid;
-	if ((uint32_t)cur_task)
+  int pid = -1;
+	uintptr_t offset = 0;
+	struct PageInfo *cur_task_pp = NULL, *pp = NULL;
+
+	if ((uint32_t) cur_task)
 	{
+		if ((pid = task_create()) == -1)
+		{
+			cur_task->tf.tf_regs.reg_eax = (uint32_t) -1;
+
+			return -1;
+		}
+
+		tasks[pid].tf = cur_task->tf;
+		for (; offset < USR_STACK_SIZE; offset += PGSIZE)
+		{
+			void *va = (void*) (USTACKTOP - offset - PGSIZE);
+			cur_task_pp = page_lookup(cur_task->pgdir, va, NULL);
+			assert(cur_task_pp != NULL);
+			pp = page_lookup(tasks[pid].pgdir, va, NULL);
+			assert(pp != NULL);
+			memcpy(page2kva(pp), page2kva(cur_task_pp), PGSIZE);
+		}
+
     /* Step 4: All user program use the same code for now */
     setupvm(tasks[pid].pgdir, (uint32_t)UTEXT_start, UTEXT_SZ);
     setupvm(tasks[pid].pgdir, (uint32_t)UDATA_start, UDATA_SZ);
     setupvm(tasks[pid].pgdir, (uint32_t)UBSS_start, UBSS_SZ);
     setupvm(tasks[pid].pgdir, (uint32_t)URODATA_start, URODATA_SZ);
 
+		cur_task->tf.tf_regs.reg_eax = pid;
+		tasks[pid].tf.tf_regs.reg_eax = 0;
+		tasks[pid].parent_id = cur_task->task_id;
+
+		return 0;
 	}
+
+	return -1;
 }
 
 /* TODO: Lab5

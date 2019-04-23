@@ -27,9 +27,7 @@ int32_t do_syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, ui
 	switch (syscallno)
 	{
 	case SYS_fork:
-		/* TODO: Lab 5
-     * You can reference kernel/task.c, kernel/task.h
-     */
+		sys_fork();
 		break;
 
 	case SYS_getc:
