@@ -170,17 +170,25 @@ int task_create()
  */
 static void task_free(int pid)
 {
+	uintptr_t offset = 0;
+
+	lcr3(PADDR(kern_pgdir));
+
+	for (; offset < USR_STACK_SIZE; offset += PGSIZE)
+	{
+		page_remove(tasks[pid].pgdir, (void *) (USTACKTOP - offset - PGSIZE));
+	}
+	ptable_remove(tasks[pid].pgdir);
+	pgdir_remove(tasks[pid].pgdir);
 }
 
 void sys_kill(int pid)
 {
 	if (pid > 0 && pid < NR_TASKS)
 	{
-	/* TODO: Lab 5
-   * Remember to change the state of tasks
-   * Free the memory
-   * and invoke the scheduler for yield
-   */
+		tasks[pid].state = TASK_FREE;
+		task_free(pid);
+		sched_yield();
 	}
 }
 
@@ -213,6 +221,7 @@ int sys_fork()
   /* pid for newly created process */
   int pid = -1;
 	uintptr_t offset = 0;
+	void *va = NULL;
 	struct PageInfo *cur_task_pp = NULL, *pp = NULL;
 
 	if ((uint32_t) cur_task)
@@ -227,7 +236,7 @@ int sys_fork()
 		tasks[pid].tf = cur_task->tf;
 		for (; offset < USR_STACK_SIZE; offset += PGSIZE)
 		{
-			void *va = (void*) (USTACKTOP - offset - PGSIZE);
+			va = (void *) (USTACKTOP - offset - PGSIZE);
 			cur_task_pp = page_lookup(cur_task->pgdir, va, NULL);
 			assert(cur_task_pp != NULL);
 			pp = page_lookup(tasks[pid].pgdir, va, NULL);

@@ -23,4 +23,21 @@ void sched_yield(void)
 {
 	extern Task tasks[];
 	extern Task *cur_task;
+	int pid = cur_task->task_id;
+
+	while (++pid)
+	{
+		pid = pid % NR_TASKS;
+
+		if (tasks[pid].state == TASK_RUNNABLE)
+		{
+			cur_task = tasks + pid;
+			cur_task->state = TASK_RUNNING;
+			cur_task->remind_ticks = TIME_QUANT;
+			lcr3(PADDR(cur_task->pgdir));
+			ctx_switch(cur_task);
+		}
+	}
+
+	panic("No more tasks needs to be run");
 }

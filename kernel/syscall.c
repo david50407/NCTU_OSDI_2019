@@ -27,7 +27,7 @@ int32_t do_syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, ui
 	switch (syscallno)
 	{
 	case SYS_fork:
-		sys_fork();
+		retVal = sys_fork();
 		break;
 
 	case SYS_getc:
@@ -40,23 +40,18 @@ int32_t do_syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, ui
 		break;
 
 	case SYS_getpid:
-		/* TODO: Lab 5
-     * Get current task's pid
-     */
+		retVal = cur_task->task_id;
 		break;
 
 	case SYS_sleep:
-		/* TODO: Lab 5
-     * Yield this task
-     * You can reference kernel/sched.c for yielding the task
-     */
+		cur_task->remind_ticks = (int32_t) a1;
+		cur_task->state = TASK_SLEEP;
+		sched_yield();
+		retVal = 0;
 		break;
 
 	case SYS_kill:
-		/* TODO: Lab 5
-     * Kill specific task
-     * You can reference kernel/task.c, kernel/task.h
-     */
+		retVal = sys_kill((int) a1);
 		break;
 
   case SYS_get_num_free_page:
@@ -68,18 +63,17 @@ int32_t do_syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, ui
     break;
 
   case SYS_get_ticks:
-		/* TODO: Lab 5
-     * You can reference kernel/timer.c
-     */
     retVal = sys_get_ticks();
     break;
 
   case SYS_settextcolor:
 		sys_settextcolor((unsigned char) a1, (unsigned char) a2);
+		retVal = 0;
     break;
 
   case SYS_cls:
 		sys_cls();
+		retVal = 0;
     break;
 
 	}
