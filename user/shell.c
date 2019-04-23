@@ -14,6 +14,7 @@ int mon_help(int argc, char **argv);
 int mem_stat(int argc, char **argv);
 int print_tick(int argc, char **argv);
 int chgcolor(int argc, char **argv);
+int clear_screen(int argc, char **argv);
 int forktest(int argc, char **argv);
 
 struct Command commands[] = {
@@ -21,6 +22,7 @@ struct Command commands[] = {
   { "mem_stat", "Show current usage of physical memory", mem_stat },
   { "print_tick", "Display system tick", print_tick },
   { "chgcolor", "Change screen text color", chgcolor },
+  { "clear", "Clear screen up", clear_screen },
   { "forktest", "Test functionality of fork()", forktest }
 };
 const int NCOMMANDS = (sizeof(commands)/sizeof(commands[0]));
@@ -46,6 +48,12 @@ int print_tick(int argc, char **argv)
 {
   cprintf("Now tick = %d\n", get_ticks());
   return 0;
+}
+
+int clear_screen(int argc, char **argv)
+{
+	cls();
+	return 0;
 }
 
 int chgcolor(int argc, char **argv)
