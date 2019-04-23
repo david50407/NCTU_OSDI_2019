@@ -97,15 +97,40 @@ extern void sched_yield(void);
  */
 int task_create()
 {
-	Task *ts = NULL;
+	Task *ts = tasks;
+	uintptr_t offset = 0;
+	void *va = NULL;
+	struct PageInfo *pp = NULL;
 
 	/* Find a free task structure */
+	for (; ts < tasks + NR_TASKS; ++ts)
+	{
+		if (ts->state == TASK_FREE)
+		{
+			break;
+		}
+	}
+	if (ts == tasks + NR_TASKS)
+	{
+		return -1;
+	}
 
   /* Setup Page Directory and pages for kernel*/
   if (!(ts->pgdir = setupkvm()))
     panic("Not enough memory for per process page directory!\n");
 
   /* Setup User Stack */
+	for (; offset < USR_STACK_SIZE; offset += PGSIZE) {
+		va = (void*) (USTACKTOP - offset - PGSIZE);
+		if ((pp = page_alloc(0)) == NULL)
+		{
+			panic("OOM at allocating User Stack\n");
+		}
+		if (page_insert(ts->pgdir, pp, va, PTE_U | PTE_W))
+		{
+			panic("OOM at allocating User Stack PDE\n");
+		}
+	}
 
 	/* Setup Trapframe */
 	memset( &(ts->tf), 0, sizeof(ts->tf));
@@ -117,6 +142,12 @@ int task_create()
 	ts->tf.tf_esp = USTACKTOP-PGSIZE;
 
 	/* Setup task structure (task_id and parent_id) */
+	ts->task_id = ts - tasks;
+	ts->parent_id = 0;
+	ts->state = TASK_RUNNABLE;
+	ts->remind_ticks = TIME_QUANT;
+
+	return ts - tasks;
 }
 
 

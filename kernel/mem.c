@@ -580,6 +580,20 @@ setupvm(pde_t *pgdir, uint32_t start, uint32_t size)
 pde_t *
 setupkvm()
 {
+	struct PageInfo *pp_pgdir = page_alloc(ALLOC_ZERO);
+
+	if (pp_pgdir == NULL)
+	{
+		panic("OOM at allocating new pgdir\n");
+	}
+
+	pte_t *pgdir = page2kva(pp_pgdir);
+	boot_map_region(pgdir, UPAGES, ROUNDUP((sizeof(struct PageInfo) * npages), PGSIZE), PADDR(pages), (PTE_U | PTE_P));
+	boot_map_region(pgdir, KSTACKTOP - KSTKSIZE, KSTKSIZE, PADDR(bootstack), (PTE_W | PTE_P));
+	boot_map_region(pgdir, KERNBASE, ROUNDUP(((1llu << 32) - KERNBASE), PGSIZE), 0, (PTE_W | PTE_P));
+	boot_map_region(pgdir, IOPHYSMEM, ROUNDUP((EXTPHYSMEM - IOPHYSMEM), PGSIZE), IOPHYSMEM, (PTE_W) | (PTE_P));
+
+	return pgdir;
 }
 
 

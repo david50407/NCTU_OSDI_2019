@@ -30,8 +30,10 @@ void kernel_main(void)
   printk("Kernel data base start=0x%08x to = 0x%08x\n", data_start, end);
   timer_init();
   syscall_init();
+  printk("syscall/interupt initialized\n");
 
   task_init();
+  printk("task initialized\n");
 
   /* Enable interrupt */
   __asm __volatile("sti");
