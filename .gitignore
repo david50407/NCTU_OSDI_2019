@@ -1,5 +1,3 @@
-*.o
-
 /boot/boot
 /boot/boot.asm
 /boot/boot.out
@@ -7,3 +5,7 @@
 /kernel/system.asm
 /kernel/system.sym
 /kernel.img
+cscope.out
+tags
+*.o
+*.asm

@@ -32,6 +32,8 @@ clean:
 	rm $(OBJDIR)/boot/*.o $(OBJDIR)/boot/boot.out $(OBJDIR)/boot/boot $(OBJDIR)/boot/boot.asm || true
 	rm $(OBJDIR)/kernel/*.o $(OBJDIR)/kernel/system* kernel.* || true
 	rm $(OBJDIR)/lib/*.o || true
+	rm $(OBJDIR)/user/*.o || true
+	rm $(OBJDIR)/user/*.asm || true
 
 run: 
 	qemu-system-i386 -hda $(OBJDIR)/kernel.img -nographic -curses
