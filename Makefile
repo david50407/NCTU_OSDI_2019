@@ -6,7 +6,7 @@ OBJCOPY = objcopy
 OBJDUMP = objdump
 NM = nm
 
-CFLAGS = -m32 -Wall -O -fstrength-reduce -fomit-frame-pointer -finline-functions -nostdinc -fno-builtin -fno-stack-protector
+CFLAGS = -m32 -Wall -O -fstrength-reduce -finline-functions -nostdinc -fno-builtin -fno-stack-protector
 LDFLAGS = -m elf_i386
 
 # Add debug symbol
@@ -17,6 +17,7 @@ CFLAGS += -I.
 OBJDIR = .
 
 .PHONY: all clean
+CPUS ?= 1
 
 all: $(OBJDIR)/kernel.img
 
@@ -36,7 +37,7 @@ clean:
 	rm $(OBJDIR)/user/*.asm || true
 
 run: 
-	qemu-system-i386 -hda $(OBJDIR)/kernel.img -nographic -curses
+	qemu-system-i386 -hda $(OBJDIR)/kernel.img -nographic -curses -smp $(CPUS)
 
 debug:
-	qemu-system-i386 -hda $(OBJDIR)/kernel.img -nographic -curses -s -S
+	qemu-system-i386 -hda $(OBJDIR)/kernel.img -nographic -curses -s -S -smp $(CUPS)
