@@ -643,9 +643,17 @@ mmio_map_region(physaddr_t pa, size_t size)
 	//
 	// Lab6 TODO
 	// Your code here:
-	
 
-	panic("mmio_map_region not implemented");
+	uintptr_t rtn = base;
+	size_t padded_size = ROUNDUP(size, PGSIZE);
+	if (base + padded_size > MMIOLIM) {
+		panic("Out of MMIO range");
+	}
+
+  boot_map_region(kern_pgdir, base, padded_size, pa, PTE_W | PTE_PCD | PTE_PWT);
+	base += padded_size;
+
+	return rtn;
 }
 
 /* This is a simple wrapper function for mapping user program */
