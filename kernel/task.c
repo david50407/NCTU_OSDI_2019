@@ -6,6 +6,7 @@
 #include <kernel/task.h>
 #include <kernel/mem.h>
 #include <kernel/cpu.h>
+#include <kernel/spinlock.h>
 
 // Global descriptor table.
 //
@@ -51,6 +52,7 @@ struct Pseudodesc gdt_pd = {
 
 
 
+static struct spinlock lock_free_task;
 Task tasks[NR_TASKS];
 
 extern char bootstack[];
@@ -69,7 +71,7 @@ extern void sched_yield(void);
 
 
 static void insertrq(int pid, int cpu_id) {
-	// spin_lock(&cpus[cpu_id].lock);
+	spin_lock(&cpus[cpu_id].lock);
 	int cur_id = cpus[cpu_id].cpu_task->task_id;
 	int prev_id = cpus[cpu_id].cpu_rq.prev[cur_id];
 	cpus[cpu_id].cpu_rq.next[prev_id] = pid;
@@ -78,17 +80,17 @@ static void insertrq(int pid, int cpu_id) {
 	cpus[cpu_id].cpu_rq.prev[pid] = prev_id;
 	++cpus[cpu_id].cpu_rq.size;
 	tasks[pid].cpu_id = cpu_id;
-	// spin_unlock(&cpus[cpuid].lock);
+	spin_unlock(&cpus[cpu_id].lock);
 }
 
 static void removerq(int pid, int cpu_id) {
-	// spin_lock(&cpus[cpuid].lock);
+	spin_lock(&cpus[cpu_id].lock);
 	int next_id = cpus[cpu_id].cpu_rq.next[pid];
 	int prev_id = cpus[cpu_id].cpu_rq.prev[pid];
 	cpus[cpu_id].cpu_rq.next[prev_id] = next_id;
 	cpus[cpu_id].cpu_rq.prev[next_id] = prev_id;
 	cpus[cpu_id].cpu_rq.size--;
-	// spin_unlock(&cpus[cpuid].lock);
+	spin_unlock(&cpus[cpu_id].lock);
 }
 
 /* TODO: Lab5
@@ -123,6 +125,8 @@ int task_create()
 	void *va = NULL;
 	struct PageInfo *pp = NULL;
 
+	spin_lock(&lock_free_task);
+
 	/* Find a free task structure */
 	for (; ts < tasks + NR_TASKS; ++ts)
 	{
@@ -133,6 +137,7 @@ int task_create()
 	}
 	if (ts == tasks + NR_TASKS)
 	{
+		spin_unlock(&lock_free_task);
 		return -1;
 	}
 
@@ -168,6 +173,7 @@ int task_create()
 	ts->state = TASK_RUNNABLE;
 	ts->remind_ticks = TIME_QUANT;
 
+	spin_unlock(&lock_free_task);
 	return ts - tasks;
 }
 
@@ -195,6 +201,8 @@ static void task_free(int pid)
 {
 	uintptr_t offset = 0;
 
+	spin_lock(&lock_free_task);
+
 	lcr3(PADDR(kern_pgdir));
 
 	for (; offset < USR_STACK_SIZE; offset += PGSIZE)
@@ -203,6 +211,8 @@ static void task_free(int pid)
 	}
 	ptable_remove(tasks[pid].pgdir);
 	pgdir_remove(tasks[pid].pgdir);
+
+	spin_unlock(&lock_free_task);
 }
 
 // Lab6 TODO
@@ -319,6 +329,7 @@ void task_init()
 		tasks[i].state = TASK_FREE;
 
 	}
+	spin_initlock(&lock_free_task);
 	task_init_percpu();
 }
 
@@ -340,6 +351,7 @@ void task_init_percpu()
 	int i;
 	extern int user_entry();
 	extern int idle_entry();
+	spin_initlock(&thiscpu->lock);
 	
 	// Setup a TSS so that we get the right stack
 	// when we trap to the kernel.

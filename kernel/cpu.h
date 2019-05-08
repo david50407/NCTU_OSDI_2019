@@ -6,6 +6,7 @@
 #include <inc/memlayout.h>
 #include <inc/mmu.h>
 #include <kernel/task.h>
+#include <kernel/spinlock.h>
 
 // Maximum number of CPUs
 #define NCPU  8
@@ -24,6 +25,7 @@ struct CpuInfo {
 	Task *cpu_task;          // The currently-running task.
 	Runqueue cpu_rq;        // cpu runqueue
 	struct tss_struct cpu_tss;        // Used by x86 to find stack for interrupt
+	struct spinlock lock;
 };
 
 // Initialized in mpconfig.c

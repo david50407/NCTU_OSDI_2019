@@ -9,6 +9,7 @@
 #include <kernel/mem.h>
 #include <kernel/kclock.h>
 #include <kernel/cpu.h>
+#include <kernel/spinlock.h>
 
 // These variables are set by i386_detect_memory()
 size_t                   npages;			// Amount of physical memory (in pages)
@@ -20,6 +21,8 @@ pde_t                    *kern_pgdir;		// Kernel's initial page directory
 struct PageInfo          *pages;		// Physical page state array
 static struct PageInfo   *page_free_list;	// Free list of physical pages
 size_t                   num_free_pages;
+
+static struct spinlock   spin_page_alloc;
 
 // --------------------------------------------------------------
 // Detect machine's physical memory setup.
@@ -124,6 +127,7 @@ mem_init(void)
 	uint32_t cr0;
 	nextfree = 0;
 	page_free_list = 0;
+	spin_initlock(&spin_page_alloc);
 
 	// Find out how much memory the machine has (npages & npages_basemem).
 	i386_detect_memory();
@@ -351,8 +355,10 @@ struct PageInfo *
 page_alloc(int alloc_flags)
 {
 	struct PageInfo *result;
+	spin_lock(&spin_page_alloc);
 
 	if (!page_free_list) {
+		spin_unlock(&spin_page_alloc);
 		return NULL;
 	}
 
@@ -367,6 +373,7 @@ page_alloc(int alloc_flags)
 	result->pp_ref = 0;
 
 	--num_free_pages;
+	spin_unlock(&spin_page_alloc);
 	return result;
 }
 
@@ -377,6 +384,7 @@ page_alloc(int alloc_flags)
 void
 page_free(struct PageInfo *pp)
 {
+	spin_lock(&spin_page_alloc);
 	// Fill this function in
 	// Hint: You may want to panic if pp->pp_ref is nonzero or
 	// pp->pp_link is not NULL.
@@ -388,6 +396,7 @@ page_free(struct PageInfo *pp)
 	page_free_list = pp;
 
 	++num_free_pages;
+	spin_unlock(&spin_page_alloc);
 }
 
 //
