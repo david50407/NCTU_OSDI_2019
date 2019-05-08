@@ -43,7 +43,7 @@
 void sched_yield(void)
 {
 	extern Task tasks[];
-	extern Task *cur_task;
+	Task *cur_task = thiscpu->cpu_task;
 	int pid = cur_task->task_id;
 
 	while (++pid)

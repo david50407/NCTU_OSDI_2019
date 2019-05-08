@@ -695,10 +695,6 @@ setupkvm()
 	}
 
 	pte_t *pgdir = page2kva(pp_pgdir);
-	boot_map_region(pgdir, UPAGES, ROUNDUP((sizeof(struct PageInfo) * npages), PGSIZE), PADDR(pages), (PTE_U | PTE_P));
-	boot_map_region(pgdir, KSTACKTOP - KSTKSIZE, KSTKSIZE, PADDR(bootstack), (PTE_W | PTE_P));
-	boot_map_region(pgdir, KERNBASE, ROUNDUP(((1llu << 32) - KERNBASE), PGSIZE), 0, (PTE_W | PTE_P));
-	boot_map_region(pgdir, IOPHYSMEM, ROUNDUP((EXTPHYSMEM - IOPHYSMEM), PGSIZE), IOPHYSMEM, (PTE_W) | (PTE_P));
 
 	for (; i < NPDENTRIES; ++i) {
 		if (i == PDX(UVPT)) {

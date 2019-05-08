@@ -33,7 +33,7 @@ void timer_handler(struct Trapframe *tf)
 
   extern Task tasks[];
 
-  extern Task *cur_task;
+  Task *cur_task = thiscpu->cpu_task;;
 
   if (cur_task != NULL)
   {

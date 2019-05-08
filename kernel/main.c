@@ -37,6 +37,7 @@ void kernel_main(void)
   printk("Readonly data start=0x%08x to = 0x%08x\n", etext, rdata_end);
   printk("Kernel data base start=0x%08x to = 0x%08x\n", data_start, end);
 
+	Task *cur_task = cpus[0].cpu_task;
   /* Enable interrupt */
   __asm __volatile("sti");
 
@@ -77,6 +78,16 @@ boot_aps(void)
 	//      -- Wait for the CPU to finish some basic setup in mp_main(
 	// 
 	// Your code here:
+	extern uint8_t mpentry_start[], mpentry_end[];
+	uint8_t *mp = KADDR(MPENTRY_PADDR);
+	int i = 1;
+
+	memmove(mp, mpentry_start, mpentry_end - mpentry_start);
+	for (; i < ncpu; ++i){
+		mpentry_kstack = percpu_kstacks[i] + KSTKSIZE;
+		lapic_startap(cpus[i].cpu_id, (uint32_t) mp);
+		while (cpus[i].cpu_status != CPU_STARTED) {}
+	}
 }
 
 // Setup code for APs
@@ -150,14 +161,18 @@ mp_main(void)
 	printk("SMP: CPU %d starting\n", cpunum());
 	
 	// Your code here:
-	
+	lapic_init();
+	printk("SMP: CPU %d lapic inited\n", cpunum());
+	task_init_percpu();
+	printk("SMP: CPU %d task inited\n", cpunum());
+	extern struct Pseudodesc idt_pd;
+	lidt(&idt_pd);
 
 	// TODO: Lab6
 	// Now that we have finished some basic setup, it's time to tell
 	// boot_aps() we're up ( using xchg )
 	// Your code here:
-
-
+	xchg(&(thiscpu->cpu_status), CPU_STARTED);
 
 	/* Enable interrupt */
 	__asm __volatile("sti");
