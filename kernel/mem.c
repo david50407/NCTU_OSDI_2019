@@ -686,6 +686,7 @@ setupvm(pde_t *pgdir, uint32_t start, uint32_t size)
 pde_t *
 setupkvm()
 {
+	int i = 0, j = 0;
 	struct PageInfo *pp_pgdir = page_alloc(ALLOC_ZERO);
 
 	if (pp_pgdir == NULL)
@@ -698,6 +699,30 @@ setupkvm()
 	boot_map_region(pgdir, KSTACKTOP - KSTKSIZE, KSTKSIZE, PADDR(bootstack), (PTE_W | PTE_P));
 	boot_map_region(pgdir, KERNBASE, ROUNDUP(((1llu << 32) - KERNBASE), PGSIZE), 0, (PTE_W | PTE_P));
 	boot_map_region(pgdir, IOPHYSMEM, ROUNDUP((EXTPHYSMEM - IOPHYSMEM), PGSIZE), IOPHYSMEM, (PTE_W) | (PTE_P));
+
+	for (; i < NPDENTRIES; ++i) {
+		if (i == PDX(UVPT)) {
+			continue;
+		}
+
+		if (kern_pgdir[i] & PTE_P) {
+			pgdir[i] = PGOFF(kern_pgdir[i]);
+			
+			struct PageInfo *pi = page_alloc(0);
+			if (pi == NULL) {
+				panic("OOM at allocating new pgtab");
+			}
+
+			pi->pp_ref++;
+			pte_t *pt = page2kva(pi);
+			pte_t *ker_pt = KADDR(PGNUM(kern_pgdir[i]) << PTXSHIFT);
+			pgdir[i] |= (uintptr_t) PADDR(pt);
+
+			for (j = 0; j < NPTENTRIES; ++j) {
+				pt[j] = ker_pt[j];
+			}
+		}
+	}
 
 	return pgdir;
 }
