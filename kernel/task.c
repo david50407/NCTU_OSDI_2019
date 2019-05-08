@@ -283,7 +283,7 @@ void task_init()
 	// Setup a TSS so that we get the right stack
 	// when we trap to the kernel.
 	memset(&(tss), 0, sizeof(tss));
-	tss.ts_esp0 = (uint32_t)bootstack + KSTKSIZE;
+	tss.ts_esp0 = (uint32_t)bootstack + KSTKSIZE; // bootstacktop
 	tss.ts_ss0 = GD_KD;
 
 	// fs and gs stay in user data segment
