@@ -26,7 +26,7 @@ typedef struct
 	int32_t remind_ticks;
 	TaskState state;	//Task state
   pde_t *pgdir;  //Per process Page Directory
-	
+	int cpu_id;
 } Task;
 
 // TODO Lab6
@@ -41,13 +41,16 @@ typedef struct
 //
 typedef struct
 {
-
+	int next[NR_TASKS];
+	int prev[NR_TASKS];
+	int size;
 } Runqueue;
 
 
 void task_init();
 void task_init_percpu();
 void env_pop_tf(struct Trapframe *tf);
+int most_idle_cpu();
 
 /* TODO Lab 5
  * Interface for real implementation of kill and fork

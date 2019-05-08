@@ -35,6 +35,7 @@ void timer_handler(struct Trapframe *tf)
 
   Task *cur_task = thiscpu->cpu_task;;
 
+	lapic_eoi();
   if (cur_task != NULL)
   {
   /* TODO: Lab 5

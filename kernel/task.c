@@ -68,6 +68,29 @@ uint32_t URODATA_SZ;
 extern void sched_yield(void);
 
 
+static void insertrq(int pid, int cpu_id) {
+	// spin_lock(&cpus[cpu_id].lock);
+	int cur_id = cpus[cpu_id].cpu_task->task_id;
+	int prev_id = cpus[cpu_id].cpu_rq.prev[cur_id];
+	cpus[cpu_id].cpu_rq.next[prev_id] = pid;
+	cpus[cpu_id].cpu_rq.prev[cur_id] = pid;
+	cpus[cpu_id].cpu_rq.next[pid] = cur_id;
+	cpus[cpu_id].cpu_rq.prev[pid] = prev_id;
+	++cpus[cpu_id].cpu_rq.size;
+	tasks[pid].cpu_id = cpu_id;
+	// spin_unlock(&cpus[cpuid].lock);
+}
+
+static void removerq(int pid, int cpu_id) {
+	// spin_lock(&cpus[cpuid].lock);
+	int next_id = cpus[cpu_id].cpu_rq.next[pid];
+	int prev_id = cpus[cpu_id].cpu_rq.prev[pid];
+	cpus[cpu_id].cpu_rq.next[prev_id] = next_id;
+	cpus[cpu_id].cpu_rq.prev[next_id] = prev_id;
+	cpus[cpu_id].cpu_rq.size--;
+	// spin_unlock(&cpus[cpuid].lock);
+}
+
 /* TODO: Lab5
  * 1. Find a free task structure for the new task,
  *    the global task list is in the array "tasks".
@@ -193,6 +216,7 @@ void sys_kill(int pid)
 	if (pid > 0 && pid < NR_TASKS)
 	{
 		tasks[pid].state = TASK_FREE;
+		removerq(pid, tasks[pid].cpu_id);
 		task_free(pid);
 		sched_yield();
 	}
@@ -267,6 +291,7 @@ int sys_fork()
 		cur_task->tf.tf_regs.reg_eax = pid;
 		tasks[pid].tf.tf_regs.reg_eax = 0;
 		tasks[pid].parent_id = cur_task->task_id;
+		insertrq(pid, most_idle_cpu());
 
 		return 0;
 	}
@@ -334,6 +359,10 @@ void task_init_percpu()
 	i = task_create();
 	thiscpu->cpu_task = &(tasks[i]);
 	Task *cur_task = thiscpu->cpu_task;
+	cur_task->cpu_id = cpunum();
+	cpus[cpunum()].cpu_rq.next[i] = i;
+	cpus[cpunum()].cpu_rq.prev[i] = i;
+	cpus[cpunum()].cpu_rq.size = 1;
 
 	/* For user program */
 	setupvm(cur_task->pgdir, (uint32_t)UTEXT_start, UTEXT_SZ);
@@ -352,4 +381,14 @@ void task_init_percpu()
 	ltr(GD_TSS0 + (cpunum() << 3));
 
 	cur_task->state = TASK_RUNNING;
+}
+
+int most_idle_cpu()
+{
+	int cpu_id = 0, i = 1;
+	for(; i < ncpu; ++i) {
+		if (cpus[i].cpu_rq.size < cpus[cpu_id].cpu_rq.size)
+			cpu_id = i;
+	}
+	return cpu_id;
 }

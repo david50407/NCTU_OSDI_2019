@@ -43,20 +43,18 @@
 void sched_yield(void)
 {
 	extern Task tasks[];
-	Task *cur_task = thiscpu->cpu_task;
-	int pid = cur_task->task_id;
+	int pid = thiscpu->cpu_task->task_id;
 
-	while (++pid)
+	while (1)
 	{
-		pid = pid % NR_TASKS;
-
+		pid = thiscpu->cpu_rq.next[pid];
 		if (tasks[pid].state == TASK_RUNNABLE)
 		{
-			cur_task = tasks + pid;
-			cur_task->state = TASK_RUNNING;
-			cur_task->remind_ticks = TIME_QUANT;
-			lcr3(PADDR(cur_task->pgdir));
-			ctx_switch(cur_task);
+			thiscpu->cpu_task = tasks + pid;
+			thiscpu->cpu_task->state = TASK_RUNNING;
+			thiscpu->cpu_task->remind_ticks = TIME_QUANT;
+			lcr3(PADDR(thiscpu->cpu_task->pgdir));
+			ctx_switch(thiscpu->cpu_task);
 		}
 	}
 
