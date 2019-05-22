@@ -303,7 +303,7 @@ int sys_fork()
 		tasks[pid].parent_id = cur_task->task_id;
 		insertrq(pid, most_idle_cpu());
 
-		return 0;
+		return pid;
 	}
 
 	return -1;
@@ -349,6 +349,7 @@ void task_init()
 void task_init_percpu()
 {
 	int i;
+	void *kstacktop_i = KSTACKTOP - cpunum() * (KSTKSIZE + KSTKGAP);
 	extern int user_entry();
 	extern int idle_entry();
 	spin_initlock(&thiscpu->lock);
@@ -356,7 +357,7 @@ void task_init_percpu()
 	// Setup a TSS so that we get the right stack
 	// when we trap to the kernel.
 	memset(&(thiscpu->cpu_tss), 0, sizeof(thiscpu->cpu_tss));
-	thiscpu->cpu_tss.ts_esp0 = (uint32_t)percpu_kstacks[cpunum()]+ KSTKSIZE; // bootstacktop
+	thiscpu->cpu_tss.ts_esp0 = (uint32_t) kstacktop_i; // bootstacktop
 	thiscpu->cpu_tss.ts_ss0 = GD_KD;
 
 	// fs and gs stay in user data segment

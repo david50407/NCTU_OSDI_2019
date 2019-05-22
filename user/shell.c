@@ -17,6 +17,7 @@ int chgcolor(int argc, char **argv);
 int clear_screen(int argc, char **argv);
 int forktest(int argc, char **argv);
 int spinlocktest(int argc, char **argv);
+int simpletest(int argc, char **argv);
 
 struct Command commands[] = {
   { "help", "Display this list of commands", mon_help },
@@ -25,6 +26,7 @@ struct Command commands[] = {
   { "chgcolor", "Change screen text color", chgcolor },
   { "clear", "Clear screen up", clear_screen },
   { "forktest", "Test functionality of fork()", forktest },
+  { "simpletest", "Test functionality of fork()", simpletest },
   { "spinlocktest", "Test spinlock", spinlocktest }
 };
 const int NCOMMANDS = (sizeof(commands)/sizeof(commands[0]));
@@ -171,6 +173,16 @@ int spinlocktest(int argc, char **argv)
     /* task recycle */
     kill_self();
   }
+  return 0;
+}
+
+int simpletest(int argc, char **argv)
+{
+	fork();
+	fork();
+	fork();
+	cprintf("Pid=%d, Cid=%d\n", getpid(), getcid());
+	kill_self();
   return 0;
 }
 
